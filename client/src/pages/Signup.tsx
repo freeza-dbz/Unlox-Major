@@ -72,11 +72,12 @@ export default function Signup() {
         }, 2100);
       } else {
         // Error case
+        console.log('Signup error response:', response.status, res_data);
         const errorMessage = 
           res_data?.message || 
           res_data?.error?.message || 
           res_data?.error || 
-          'Signup failed. Please try again.';
+          `Signup failed with status ${response.status}. Please try again.`;
         
         setError(errorMessage);
 
@@ -89,6 +90,7 @@ export default function Signup() {
         });
       }
     } catch (err) {
+      console.error('Signup network error:', err);
       const errorMsg = err instanceof Error ? err.message : 'An error occurred during signup';
       setError(errorMsg);
 
@@ -115,7 +117,7 @@ export default function Signup() {
           </div>
 
           <h1 className="text-3xl font-bold text-gray-900 text-center mb-2">
-            Create Admin Account
+            Create Account
           </h1>
           <p className="text-gray-600 text-center mb-8">
             Sign up to manage your website content

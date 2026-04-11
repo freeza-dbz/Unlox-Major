@@ -13,11 +13,13 @@ const generateAccessAndRefreshTokens = async (userId) => {
         const refreshToken = user.generateRefreshToken();
 
         user.refreshToken = refreshToken;
-        await user.save({ validateBeforeSave: false });
 
-        return { accessToken, refreshToken };
+        await user.save({ validateBeforeSave: false })
+
+        return { accessToken, refreshToken }
+
     } catch (error) {
-        throw new ApiError(500, "Something went wrong while generating refresh and access token");
+        throw new ApiError(500, error.message || "Something went wrong while generating Tokens")
     }
 };
 
@@ -43,17 +45,33 @@ const registerUser = asyncHandler(async (req, res) => {
         username: username.toLowerCase()
     });
 
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
+
     const createdUser = await User.findById(user._id).select(
-        "-password -refreshToken"
+        "-password "
     );
 
     if (!createdUser) {
         throw new ApiError(500, "Something went wrong while registering the user");
     }
 
-    return res.status(201).json(
-        new ApiResponse(200, createdUser, "User registered Successfully")
-    );
+    const options = { 
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict"
+    }
+
+    return res
+        .status(201)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new ApiResponse(
+                201,
+                createdUser,
+                "User created successfully",
+            )
+        )
 });
 
 const loginUser = asyncHandler(async (req, res) => {

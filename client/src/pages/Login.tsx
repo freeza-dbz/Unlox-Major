@@ -73,11 +73,12 @@ export default function Login() {
         }, 1600);
       } else {
         // Error case - get message from server response
+        console.log('Login error response:', response.status, res_data);
         const errorMessage = 
           res_data?.message || 
           res_data?.error?.message || 
           res_data?.error || 
-          'Login failed. Please try again.';
+          `Login failed with status ${response.status}. Please try again.`;
         
         setError(errorMessage);
 
@@ -105,6 +106,7 @@ export default function Login() {
         });
       }
     } catch (err) {
+      console.error('Login network error:', err);
       const errorMsg = err instanceof Error ? err.message : 'An error occurred during login';
       setError(errorMsg);
 
