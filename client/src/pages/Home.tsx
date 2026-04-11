@@ -27,7 +27,7 @@ type Metric = {
 };
 
 type Testimonial = {
-  id: string;
+  _id: string;
   name: string;
   role: string;
   company: string;
@@ -111,19 +111,7 @@ export default function Home() {
       display_order: 2
     }
   ]);
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([
-    {
-      id: '1',
-      name: 'John Doe',
-      role: 'CEO',
-      company: 'Tech Corp',
-      content: 'Excellent work and great communication.',
-      rating: 5,
-      is_featured: true,
-      is_active: true,
-      display_order: 1
-    }
-  ]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [featuredProjects, setFeaturedProjects] = useState<Project[]>([
     {
       id: '1',
@@ -143,6 +131,28 @@ export default function Home() {
     }
   ]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchHomeData = async () => {
+      setLoading(true);
+      try {
+        // Fetch testimonials
+        const testimonialsResponse = await fetch('http://localhost:8000/api/v1/testimonials/');
+        if (testimonialsResponse.ok) {
+            const testimonialsData = await testimonialsResponse.json();
+            if (testimonialsData.success) {
+                setTestimonials(testimonialsData.data);
+            }
+        }
+      } catch (error) {
+          console.error("Failed to fetch testimonials", error);
+      } finally {
+          setLoading(false);
+      }
+    };
+
+    fetchHomeData();
+  }, []);
 
   const getIcon = (iconName: string) => {
     const IconComponent = (Icons as any)[iconName];
@@ -342,7 +352,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {testimonials.map((testimonial) => (
               <div
-                key={testimonial.id}
+                key={testimonial._id}
                 className="bg-white rounded-xl p-8 shadow-sm hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-center space-x-1 mb-4">

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, BarChart3, Settings, Users, Briefcase, MessageSquare, UserCheck } from 'lucide-react';
+import { LogOut, BarChart3, Settings, Briefcase, MessageSquare, UserCheck, ConciergeBell } from 'lucide-react';
 import AdminServices from '../admin/AdminServices';
 import AdminPortfolio from '../admin/AdminPortfolio';
 import AdminTestimonials from '../admin/AdminTestimonials';
@@ -55,8 +55,8 @@ export default function Admin() {
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'services', label: 'Services', icon: Briefcase },
-    { id: 'portfolio', label: 'Portfolio', icon: Users },
+    { id: 'services', label: 'Services', icon: ConciergeBell },
+    { id: 'portfolio', label: 'Portfolio', icon: Briefcase },
     { id: 'testimonials', label: 'Testimonials', icon: MessageSquare },
     { id: 'users', label: 'Users', icon: UserCheck },
     { id: 'settings', label: 'Settings', icon: Settings },

@@ -94,7 +94,7 @@ export default function Header() {
                   <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
                     <User size={14} className="text-white" />
                   </div>
-                  <span className="font-semibold">{data.username}</span>
+                  <span className="font-semibold">{data.user?.username}</span>
                   <ChevronDown size={14} className={`transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
                 

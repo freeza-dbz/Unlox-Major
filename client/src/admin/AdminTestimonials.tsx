@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Plus, Trash2, CreditCard as Edit2, Check, X } from 'lucide-react';
 
-type Testimonial = {
-  id: string;
+const API_BASE_URL = "http://localhost:8000/api/v1/testimonials";
+
+interface Testimonial {
+  _id: string;
   name: string;
   role: string;
   company: string;
@@ -11,65 +13,161 @@ type Testimonial = {
   is_featured: boolean;
   is_active: boolean;
   display_order: number;
-};
+}
 
 export default function AdminTestimonials() {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([
-    {
-      id: '1',
-      name: 'John Doe',
-      role: 'CEO',
-      company: 'Tech Corp',
-      content: 'Great work!',
-      rating: 5,
-      is_featured: true,
-      is_active: true,
-      display_order: 1
-    }
-  ]);
-  const [loading, setLoading] = useState(false);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    client_name: '',
-    client_position: '',
-    client_company: '',
+    name: '',
+    role: '',
+    company: '',
     content: '',
     rating: 5,
   });
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     fetchTestimonials();
   }, []);
 
+  const getAuthHeaders = () => {
+    let token = localStorage.getItem('token');
+    
+    // Fallback if token wasn't saved correctly but exists in the user object
+    if (!token || token === 'undefined') {
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      token = userData?.accessToken || userData?.token || '';
+    }
+
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    };
+  };
+
   const fetchTestimonials = async () => {
-    const { data } = await supabase
-      .from('testimonials')
-      .select('*')
-      .order('display_order');
-    if (data) setTestimonials(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Unauthorized: Invalid or expired token');
+        }
+        throw new Error('Failed to fetch testimonials');
+      }
+
+      const result = await response.json();
+      if (result.success && result.data) {
+        setTestimonials(result.data);
+      }
+    } catch (err) {
+      console.error('Error fetching testimonials:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load testimonials');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure?')) return;
-    await supabase.from('testimonials').delete().eq('id', id);
-    fetchTestimonials();
+    if (!confirm('Are you sure you want to delete this testimonial?')) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.message || 'Failed to delete testimonial');
+      }
+
+      setSuccess('Testimonial deleted successfully!');
+      fetchTestimonials();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete testimonial');
+    }
   };
 
   const handleSave = async (id: string) => {
-    await supabase
-      .from('testimonials')
-      .update({
-        client_name: formData.client_name,
-        client_position: formData.client_position,
-        client_company: formData.client_company,
-        content: formData.content,
-        rating: formData.rating,
-      })
-      .eq('id', id);
+    setError('');
+    setSuccess('');
 
-    setEditing(null);
-    fetchTestimonials();
+    try {
+      const response = await fetch(`${API_BASE_URL}/${id}`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          name: formData.name,
+          role: formData.role,
+          company: formData.company,
+          content: formData.content,
+          rating: formData.rating,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to update testimonial');
+      }
+
+      if (result.success) {
+        setSuccess('Testimonial updated successfully!');
+        setEditing(null);
+        fetchTestimonials();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update testimonial');
+    }
+  };
+
+  const handleCreate = async () => {
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          name: formData.name,
+          role: formData.role,
+          company: formData.company,
+          content: formData.content,
+          rating: formData.rating,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to create testimonial');
+      }
+
+      if (result.success) {
+        setSuccess('Testimonial created successfully!');
+        setShowForm(false);
+        setFormData({
+          name: '',
+          role: '',
+          company: '',
+          content: '',
+          rating: 5,
+        });
+        fetchTestimonials();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create testimonial');
+    }
   };
 
   if (loading) {
@@ -80,39 +178,125 @@ export default function AdminTestimonials() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Testimonials</h2>
-        <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        <button 
+          onClick={() => {
+            setEditing(null);
+            setShowForm(!showForm);
+          }}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
           <Plus size={18} className="mr-2" />
-          Add Testimonial
+          {showForm ? 'Cancel' : 'Add Testimonial'}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+          {success}
+        </div>
+      )}
+
+      {showForm && (
+        <div className="border border-gray-200 rounded-lg p-6 mb-6 bg-gray-50">
+          <h3 className="text-lg font-semibold mb-4">Add New Testimonial</h3>
+          <div className="space-y-4">
+            <input
+              type="text"
+              placeholder="Client Name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded"
+            />
+            <input
+              type="text"
+              placeholder="Position"
+              value={formData.role}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded"
+            />
+            <input
+              type="text"
+              placeholder="Company"
+              value={formData.company}
+              onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded"
+            />
+            <textarea
+              placeholder="Testimonial"
+              value={formData.content}
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded"
+              rows={3}
+            />
+            <select
+              value={formData.rating}
+              onChange={(e) => setFormData({ ...formData, rating: parseInt(e.target.value) })}
+              className="w-full px-3 py-2 border border-gray-300 rounded"
+            >
+              {[1, 2, 3, 4, 5].map((r) => (
+                <option key={r} value={r}>{r} Stars</option>
+              ))}
+            </select>
+            <div className="flex space-x-2">
+              <button
+                onClick={handleCreate}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                <Check size={18} className="mr-1" /> Create
+              </button>
+              <button
+                onClick={() => {
+                  setShowForm(false);
+                  setFormData({
+                    name: '',
+                    role: '',
+                    company: '',
+                    content: '',
+                    rating: 5,
+                  });
+                }}
+                className="flex items-center px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+              >
+                <X size={18} className="mr-1" /> Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-4">
         {testimonials.map((testimonial) => (
           <div
-            key={testimonial.id}
+            key={testimonial._id}
             className="border border-gray-200 rounded-lg p-6 hover:border-gray-300 transition-colors"
           >
-            {editing === testimonial.id ? (
+            {editing === testimonial._id ? (
               <div className="space-y-4">
                 <input
                   type="text"
                   placeholder="Client Name"
-                  value={formData.client_name}
-                  onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded"
                 />
                 <input
                   type="text"
                   placeholder="Position"
-                  value={formData.client_position}
-                  onChange={(e) => setFormData({ ...formData, client_position: e.target.value })}
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded"
                 />
                 <input
                   type="text"
                   placeholder="Company"
-                  value={formData.client_company}
-                  onChange={(e) => setFormData({ ...formData, client_company: e.target.value })}
+                  value={formData.company}
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded"
                 />
                 <textarea
@@ -133,7 +317,7 @@ export default function AdminTestimonials() {
                 </select>
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => handleSave(testimonial.id)}
+                    onClick={() => handleSave(testimonial._id)}
                     className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
                   >
                     <Check size={18} className="mr-1" /> Save
@@ -149,9 +333,9 @@ export default function AdminTestimonials() {
             ) : (
               <div className="flex justify-between items-start">
                 <div className="flex-grow">
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">{testimonial.client_name}</h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">{testimonial.name}</h3>
                   <p className="text-sm text-gray-600 mb-2">
-                    {testimonial.client_position} at {testimonial.client_company}
+                    {testimonial.role} at {testimonial.company}
                   </p>
                   <p className="text-gray-700 mb-2 italic">"{testimonial.content}"</p>
                   <div className="flex space-x-1">
@@ -163,11 +347,12 @@ export default function AdminTestimonials() {
                 <div className="flex space-x-2 ml-4">
                   <button
                     onClick={() => {
-                      setEditing(testimonial.id);
+                      setShowForm(false);
+                      setEditing(testimonial._id);
                       setFormData({
-                        client_name: testimonial.client_name,
-                        client_position: testimonial.client_position,
-                        client_company: testimonial.client_company,
+                        name: testimonial.name,
+                        role: testimonial.role,
+                        company: testimonial.company,
                         content: testimonial.content,
                         rating: testimonial.rating,
                       });
@@ -177,7 +362,7 @@ export default function AdminTestimonials() {
                     <Edit2 size={18} />
                   </button>
                   <button
-                    onClick={() => handleDelete(testimonial.id)}
+                    onClick={() => handleDelete(testimonial._id)}
                     className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
                   >
                     <Trash2 size={18} />

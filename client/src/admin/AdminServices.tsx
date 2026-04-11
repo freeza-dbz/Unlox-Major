@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, CreditCard as Edit2, Check, X } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { Plus, Trash2, CreditCard as Edit2, Check, X, Code } from 'lucide-react';
 
 type Service = {
   id: string;
@@ -32,6 +31,9 @@ export default function AdminServices() {
   ]);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -51,8 +53,8 @@ export default function AdminServices() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure?')) return;
-    await supabase.from('services').delete().eq('id', id);
-    fetchServices();
+    // await fetch(`YOUR_API_URL/services/${id}`, { method: 'DELETE' });
+    setServices(services.filter(s => s.id !== id));
   };
 
   const handleSave = async (id: string) => {
@@ -61,20 +63,46 @@ export default function AdminServices() {
       .map(f => f.trim())
       .filter(f => f);
 
-    await supabase
-      .from('services')
-      .update({
-        title: formData.title,
-        slug: formData.slug,
-        short_description: formData.short_description,
-        full_description: formData.full_description,
-        icon: formData.icon,
-        features: features as any,
-      })
-      .eq('id', id);
+    // await fetch(`YOUR_API_URL/services/${id}`, { method: 'PATCH', body: JSON.stringify({...formData}) });
 
     setEditing(null);
-    fetchServices();
+  };
+
+  const handleCreate = async () => {
+    setError('');
+    setSuccess('');
+
+    if (!formData.title || !formData.short_description) {
+      setError('Title and description are required.');
+      return;
+    }
+
+    const features = formData.features
+      .split('\n')
+      .map(f => f.trim())
+      .filter(f => f);
+
+    // await fetch(`YOUR_API_URL/services`, { 
+    //   method: 'POST', 
+    //   body: JSON.stringify({ ...formData, features }) 
+    // });
+
+    setSuccess('Service created successfully! (dummy)');
+    setShowForm(false);
+    setFormData({
+      title: '',
+      slug: '',
+      short_description: '',
+      full_description: '',
+      icon: '',
+      features: '',
+    });
+    // fetchServices();
+  };
+
+  const getIcon = (iconName: string) => {
+    if (iconName === 'Code') return <Code size={24} className="text-blue-600" />;
+    return <Code size={24} className="text-gray-400" />;
   };
 
   if (loading) {
@@ -85,11 +113,67 @@ export default function AdminServices() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Services</h2>
-        <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        <button 
+          onClick={() => {
+            setEditing(null);
+            setShowForm(!showForm);
+            setFormData({ title: '', slug: '', short_description: '', full_description: '', icon: '', features: '' });
+          }}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
           <Plus size={18} className="mr-2" />
-          Add Service
+          {showForm && !editing ? 'Cancel' : 'Add Service'}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+          {success}
+        </div>
+      )}
+
+      {showForm && !editing && (
+        <div className="border border-gray-200 rounded-lg p-6 mb-6 bg-gray-50">
+          <h3 className="text-lg font-semibold mb-4">Add New Service</h3>
+          <div className="space-y-4">
+            <input
+              type="text"
+              placeholder="Title"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded"
+            />
+            <textarea
+              placeholder="Short Description"
+              value={formData.short_description}
+              onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded"
+              rows={2}
+            />
+            <textarea
+              placeholder="Features (one per line)"
+              value={formData.features}
+              onChange={(e) => setFormData({ ...formData, features: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded"
+              rows={3}
+            />
+            <div className="flex space-x-2">
+              <button onClick={handleCreate} className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                <Check size={18} className="mr-1" /> Create
+              </button>
+              <button onClick={() => setShowForm(false)} className="flex items-center px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500">
+                <X size={18} className="mr-1" /> Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-4">
         {services.map((service) => (

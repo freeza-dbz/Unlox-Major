@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Save } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 
 type CompanyInfo = {
   id: string;
@@ -36,15 +35,7 @@ export default function AdminSettings() {
     if (!info) return;
     setSaving(true);
 
-    await supabase
-      .from('company_info')
-      .update({
-        mission: info.mission,
-        vision: info.vision,
-        story: info.story,
-        values: info.values,
-      })
-      .eq('id', info.id);
+    // await fetch('YOUR_API_URL/settings', { method: 'PATCH', body: JSON.stringify(info) });
 
     setMessage('Settings saved successfully!');
     setTimeout(() => setMessage(''), 3000);
