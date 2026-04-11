@@ -9,10 +9,8 @@ await connectDB()
         throw err;
     });
 
-    const port = process.env.PORT || 8000;
-    app.listen(port, () => {
-        console.log(`Server is running on port ${port}`);
-    });
+    const port = process.env.PORT;
+    console.log(`Server is running on port ${port}`);
 })
 .catch((err) => {
     console.log("mongoDB connection failed: ", err);
