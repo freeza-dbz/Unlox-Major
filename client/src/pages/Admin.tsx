@@ -7,15 +7,51 @@ import AdminPortfolio from '../admin/AdminPortfolio';
 import AdminTestimonials from '../admin/AdminTestimonials';
 import AdminSettings from '../admin/AdminSettings';
 import AdminUsers from '../admin/AdminUsers';
+import Swal from 'sweetalert2';
+
+const LOGOUT_URL = "http://localhost:8000/api/v1/users/logout";
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await signOut();
-    navigate('/');
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(LOGOUT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        Swal.fire({
+          position: "center",
+          icon: "success",
+          title: "Logged Out",
+          text: "You have been successfully logged out.",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+        navigate('/');
+      } else {
+        // Even if logout fails, clear local storage
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/');
+      }
+    } catch (err) {
+      // Even if error, clear local storage
+      console.error('Logout error:', err);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      navigate('/');
+    }
   };
 
   const tabs = [

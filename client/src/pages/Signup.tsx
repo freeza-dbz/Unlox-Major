@@ -1,7 +1,9 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { UserPlus, AlertCircle, CheckCircle } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { UserPlus, AlertCircle } from 'lucide-react';
+import Swal from 'sweetalert2';
+
+const URL = "http://localhost:8000/api/v1/users/register";
 
 export default function Signup() {
   const [fullName, setFullName] = useState('');
@@ -11,16 +13,10 @@ export default function Signup() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
-  const { signUp } = useAuth();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess(false);
-    setLoading(true);
-
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       setLoading(false);
@@ -34,38 +30,79 @@ export default function Signup() {
     }
 
     try {
-      await signUp(fullName, email, username, password);
-      setSuccess(true);
-      setTimeout(() => navigate('/login'), 2000);
+      const payload = { fullName, username, email, password };
+
+      const response = await fetch(URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const res_data = await response.json();
+
+      if (response.ok) {
+        // Success case
+        Swal.fire({
+          position: "center",
+          icon: "success",
+          title: "Account Created!",
+          text: "Your account has been successfully created.",
+          showConfirmButton: false,
+          timer: 2000,
+          showClass: {
+            popup: `
+              animate__animated
+              animate__fadeInUp
+              animate__faster
+            `,
+          },
+          hideClass: {
+            popup: `
+              animate__animated
+              animate__fadeOutDown
+              animate__faster
+            `,
+          },
+        });
+
+        setTimeout(() => {
+          navigate('/login');
+        }, 2100);
+      } else {
+        // Error case
+        const errorMessage = 
+          res_data?.message || 
+          res_data?.error?.message || 
+          res_data?.error || 
+          'Signup failed. Please try again.';
+        
+        setError(errorMessage);
+
+        Swal.fire({
+          position: "center",
+          icon: "error",
+          title: "Signup Failed",
+          text: errorMessage,
+          confirmButtonColor: "#ef4444",
+        });
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Signup failed. Please try again.');
+      const errorMsg = err instanceof Error ? err.message : 'An error occurred during signup';
+      setError(errorMsg);
+
+      Swal.fire({
+        position: "center",
+        icon: "error",
+        title: "Error",
+        text: errorMsg,
+        confirmButtonColor: "#ef4444",
+      });
     } finally {
       setLoading(false);
     }
   };
-
-  if (success) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex items-center justify-center px-4 py-20">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-center">
-            <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle className="text-green-600" size={32} />
-              </div>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Account Created!
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Your account has been successfully created. Redirecting to login...
-            </p>
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mx-auto"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 flex items-center justify-center px-4 py-20">

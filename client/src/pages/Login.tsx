@@ -1,7 +1,13 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { LogIn, AlertCircle } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import Swal from 'sweetalert2';
+
+const URL = "http://localhost:8000/api/v1/users/login";
+
+const storeTokenInLS = (token: string) => {
+  localStorage.setItem('token', token);
+};
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -9,7 +15,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { signIn } = useAuth();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -17,10 +22,99 @@ export default function Login() {
     setLoading(true);
 
     try {
-      await signIn(email, password);
-      navigate('/admin');
+      const payload = { email, password };
+
+      const response = await fetch(URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const res_data = await response.json();
+      // console.log("Login response from server ", res_data);
+      
+
+      if (response.ok) {
+        // Success case
+        if (res_data.data?.refreshToken) {
+          storeTokenInLS(res_data.data.refreshToken);
+        }
+
+        if (res_data.success) {
+          localStorage.setItem('user', JSON.stringify(res_data.data));
+        }
+
+        Swal.fire({
+          position: "center",
+          icon: "success",
+          title: "You are logged in",
+          showConfirmButton: false,
+          timer: 1500,
+          showClass: {
+            popup: `
+              animate__animated
+              animate__fadeInUp
+              animate__faster
+            `,
+          },
+          hideClass: {
+            popup: `
+              animate__animated
+              animate__fadeOutDown
+              animate__faster
+            `,
+          },
+        });
+
+        setTimeout(() => {
+          navigate('/');
+        }, 1600);
+      } else {
+        // Error case - get message from server response
+        const errorMessage = 
+          res_data?.message || 
+          res_data?.error?.message || 
+          res_data?.error || 
+          'Login failed. Please try again.';
+        
+        setError(errorMessage);
+
+        // Also show error in SweetAlert for better visibility
+        Swal.fire({
+          position: "center",
+          icon: "error",
+          title: "Login Failed",
+          text: errorMessage,
+          confirmButtonColor: "#ef4444",
+          showClass: {
+            popup: `
+              animate__animated
+              animate__fadeInUp
+              animate__faster
+            `,
+          },
+          hideClass: {
+            popup: `
+              animate__animated
+              animate__fadeOutDown
+              animate__faster
+            `,
+          },
+        });
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+      const errorMsg = err instanceof Error ? err.message : 'An error occurred during login';
+      setError(errorMsg);
+
+      Swal.fire({
+        position: "center",
+        icon: "error",
+        title: "Error",
+        text: errorMsg,
+        confirmButtonColor: "#ef4444",
+      });
     } finally {
       setLoading(false);
     }

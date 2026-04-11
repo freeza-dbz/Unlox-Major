@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Save } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 type CompanyInfo = {
   id: string;
   mission: string;
   vision: string;
   about_text: string;
+  story: string;
+  values: { title: string; description: string }[];
 };
 
 export default function AdminSettings() {
@@ -13,7 +16,9 @@ export default function AdminSettings() {
     id: '1',
     mission: 'To deliver exceptional digital solutions',
     vision: 'To be a leading provider of innovative technology services',
-    about_text: 'We are a team of passionate developers and designers.'
+    about_text: 'We are a team of passionate developers and designers.',
+    story: 'Our story...',
+    values: [{ title: 'Innovation', description: 'We embrace new technologies' }]
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -25,8 +30,6 @@ export default function AdminSettings() {
 
   const fetchInfo = async () => {
     // Dummy
-  };
-    setLoading(false);
   };
 
   const handleSave = async () => {

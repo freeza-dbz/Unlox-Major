@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Plus, Trash2, CreditCard as Edit2, Check, X } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 type Service = {
   id: string;
@@ -8,6 +9,10 @@ type Service = {
   icon: string;
   is_active: boolean;
   display_order: number;
+  slug: string;
+  short_description: string;
+  full_description: string;
+  features: string[];
 };
 
 export default function AdminServices() {
@@ -18,7 +23,11 @@ export default function AdminServices() {
       description: 'Custom web applications',
       icon: 'Code',
       is_active: true,
-      display_order: 1
+      display_order: 1,
+      slug: 'web-development',
+      short_description: 'Custom web applications',
+      full_description: 'Full description here',
+      features: ['Feature 1', 'Feature 2']
     }
   ]);
   const [loading, setLoading] = useState(false);
@@ -38,8 +47,6 @@ export default function AdminServices() {
 
   const fetchServices = async () => {
     // Dummy
-  };
-    setLoading(false);
   };
 
   const handleDelete = async (id: string) => {
