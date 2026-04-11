@@ -38,8 +38,12 @@ export default function Login() {
 
       if (response.ok) {
         // Success case
-        if (res_data.data?.refreshToken) {
+        if (res_data.data?.accessToken) {
+          storeTokenInLS(res_data.data.accessToken);
+        } else if (res_data.data?.refreshToken) {
           storeTokenInLS(res_data.data.refreshToken);
+        } else if (res_data.token) {
+          storeTokenInLS(res_data.token);
         }
 
         if (res_data.success) {
