@@ -68,7 +68,7 @@ export default function Signup() {
         });
 
         setTimeout(() => {
-          navigate('/login');
+          navigate('/');
         }, 2100);
       } else {
         // Error case

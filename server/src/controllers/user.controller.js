@@ -273,6 +273,109 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, user, "Avatar image updated successfully"));
 });
 
+const getAllUsers = asyncHandler(async (req, res) => {
+    try {
+        const users = await User.find();
+        if (!users || users.length == 0) {
+            throw new ApiError(404, "Users Not Found");
+        }
+
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    users,
+                    "Users Data Fetch successfully"
+                )
+            )
+    } catch (error) {
+        throw new ApiError(401, error.message || "Error occured during fetching all users");
+    }
+})
+
+const fetchUserProfile = asyncHandler(async (req, res) => {
+
+    const id = req.params.id;
+
+    const user = await User.findOne({ _id: id }, {});
+
+    if (!user) {
+        throw new ApiError(404, "User not found")
+    }
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                user,
+                "User fetched successfully"
+            )
+        )
+
+})
+
+const deleteUser = asyncHandler(async (req, res) => {
+
+    const id = req.params.id;
+
+    if (!id) {
+        throw new ApiError(401, "User ID not provided");
+    }
+
+    const response = await User.deleteOne({ _id: id })
+
+    if (response.deletedCount === 0) {
+        throw new ApiError(404, "User not found or already deleted");
+    }
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                {},
+                "User deleted Successfully"
+            )
+        )
+
+})
+
+const updateDetails = asyncHandler(async (req, res) => {
+
+    const id = req.params.id
+
+    const { fullName, email, username } = req.body
+
+    if (!fullName || !email || !username) {
+        throw new ApiError(400, "All fields are required")
+    }
+
+    const user = await User.findByIdAndUpdate({ _id: id }, {
+        $set: {
+            fullName,
+            email,
+            username
+        }
+    }, {
+        new: true
+    }
+    )
+        .select("-password -refreshToken")
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                user,
+                "Details Updated Successfully"
+            )
+        )
+
+})
+
 export {
     registerUser,
     loginUser,
@@ -282,4 +385,8 @@ export {
     getCurrentUser,
     updateAccountDetails,
     updateUserAvatar,
+    getAllUsers,
+    fetchUserProfile,
+    deleteUser,
+    updateDetails,
 };

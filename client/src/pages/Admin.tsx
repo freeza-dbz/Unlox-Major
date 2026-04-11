@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, BarChart3, Settings, Users, Briefcase, MessageSquare, UserCheck } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import AdminServices from '../admin/AdminServices';
 import AdminPortfolio from '../admin/AdminPortfolio';
 import AdminTestimonials from '../admin/AdminTestimonials';
@@ -13,8 +12,8 @@ const LOGOUT_URL = "http://localhost:8000/api/v1/users/logout";
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const { user } = useAuth();
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
 
   const handleLogout = async () => {
     try {
