@@ -23,7 +23,7 @@ const portfolioSchema = new mongoose.Schema({
         type: String,
         trim: true,
     },
-    images: {
+    image: {
         type: String, // Image URL
     },
     tags: {

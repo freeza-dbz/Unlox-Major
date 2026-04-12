@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, CreditCard as Edit2, Check, X } from 'lucide-react';
+import { Plus, Trash2, CreditCard as Edit2, Check, X, UploadCloud } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 type Project = {
   _id: string;
@@ -8,7 +9,7 @@ type Project = {
   category: string;
   client?: string;
   project_url?: string;
-  images?: string;
+  image?: string;
   tags: string[];
   is_featured: boolean;
   display_order: number;
@@ -23,14 +24,17 @@ export default function AdminPortfolio() {
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [uploadType, setUploadType] = useState<'url' | 'upload'>('url');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: '',
     client: '',
     project_url: '',
-    images: '', // Comma-separated URLs
-    tags: '', // Comma-separated tags
+    image: '',
+    tags: '',
     is_featured: false,
   });
 
@@ -100,10 +104,12 @@ export default function AdminPortfolio() {
       category: '',
       client: '',
       project_url: '',
-      images: '',
+      image: '',
       tags: '',
       is_featured: false,
     });
+    setImageFile(null);
+    setUploadType('url');
     setEditingId(null);
   };
 
@@ -112,21 +118,40 @@ export default function AdminPortfolio() {
     resetForm();
   };
 
-  const preparePayload = () => {
+  const preparePayload = async () => {
     const tags = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+    let imageUrl = formData.image;
 
     if (!formData.title || !formData.description || !formData.category) {
       setError('Title, description, and category are required.');
       return null;
     }
 
-    return { ...formData, images: formData.images, tags };
+    if (uploadType === 'upload' && imageFile) {
+      setIsUploading(true);
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `portfolio/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage.from('images').upload(filePath, imageFile);
+
+      setIsUploading(false);
+      if (uploadError) {
+        setError(`Image upload failed: ${uploadError.message}`);
+        return null;
+      }
+
+      const { data } = supabase.storage.from('images').getPublicUrl(filePath);
+      imageUrl = data.publicUrl;
+    }
+
+    return { ...formData, image: imageUrl, tags };
   }
 
   const handleCreateProject = async () => { 
     setError('');
     setSuccess('');
-    const payload = preparePayload();
+    const payload = await preparePayload();
     if (!payload) return;
 
     try {
@@ -150,7 +175,7 @@ export default function AdminPortfolio() {
   const handleUpdateProject = async (id: string) => {
     setError('');
     setSuccess('');
-    const payload = preparePayload();
+    const payload = await preparePayload();
     if (!payload) return;
 
     try {
@@ -242,13 +267,31 @@ export default function AdminPortfolio() {
               onChange={(e) => setFormData({ ...formData, project_url: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded"
             />
-            <input
-              type="text"
-              placeholder="Image URL"
-              value={formData.images}
-              onChange={(e) => setFormData({ ...formData, images: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded"
-            />
+            <div className="space-y-2">
+              <div className="flex items-center space-x-4">
+                <label className="flex items-center space-x-2"><input type="radio" name="uploadType" value="url" checked={uploadType === 'url'} onChange={() => setUploadType('url')} /><span>Image URL</span></label>
+                <label className="flex items-center space-x-2"><input type="radio" name="uploadType" value="upload" checked={uploadType === 'upload'} onChange={() => setUploadType('upload')} /><span>Upload Image</span></label>
+              </div>
+              {uploadType === 'url' ? (
+                <input
+                  type="text"
+                  placeholder="https://example.com/image.png"
+                  value={formData.image}
+                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded"
+                />
+              ) : (
+                <div className="w-full px-3 py-2 border border-gray-300 rounded-lg flex items-center space-x-2">
+                  <UploadCloud size={20} className="text-gray-500" />
+                  <input
+                    type="file"
+                    accept="image/png, image/jpeg, image/webp"
+                    onChange={(e) => setImageFile(e.target.files ? e.target.files[0] : null)}
+                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                </div>
+              )}
+            </div>
             <input
               type="text"
               placeholder="Tags (comma-separated)"
@@ -266,7 +309,7 @@ export default function AdminPortfolio() {
               <span>Featured on Home Page</span>
             </label>
             <div className="flex space-x-2">
-              <button onClick={handleFormSubmit} className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+              <button onClick={handleFormSubmit} disabled={isUploading} className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400">
                 <Check size={18} className="mr-1" /> {editingId ? 'Save' : 'Create'}
               </button>
               <button onClick={handleCancel} className="flex items-center px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500">
@@ -281,7 +324,7 @@ export default function AdminPortfolio() {
         {projects.map((project) => (
           <div key={project._id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
             <img
-              src={project.images || '/placeholder.jpg'}
+              src={project.image || '/placeholder.jpg'}
               alt={project.title}
               className="w-full h-48 object-cover"
             />
@@ -299,10 +342,11 @@ export default function AdminPortfolio() {
                       category: project.category,
                       client: project.client || '',
                       project_url: project.project_url || '',
-                      images: project.images || '',
+                      image: project.image || '',
                       tags: project.tags.join(', '),
                       is_featured: project.is_featured,
                     });
+                    setUploadType('url');
                     setShowForm(true);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}

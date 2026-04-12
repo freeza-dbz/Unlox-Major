@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, CreditCard as Edit2, Check, X, User } from 'lucide-react';
+import { Plus, Trash2, CreditCard as Edit2, Check, X, User, UploadCloud } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 type TeamMember = {
   _id: string;
@@ -23,6 +24,9 @@ export default function AdminTeam() {
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [uploadType, setUploadType] = useState<'url' | 'upload'>('url');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     position: '',
@@ -103,6 +107,8 @@ export default function AdminTeam() {
       is_active: true,
       display_order: 0,
     });
+    setAvatarFile(null);
+    setUploadType('url');
     setEditingId(null);
   };
 
@@ -111,18 +117,39 @@ export default function AdminTeam() {
     resetForm();
   };
 
-  const preparePayload = () => {
+  const preparePayload = async () => {
+    let avatarUrl = formData.avatar_url;
+
     if (!formData.name || !formData.position) {
       setError('Name and position are required.');
       return null;
     }
-    return { ...formData, display_order: Number(formData.display_order) };
+
+    if (uploadType === 'upload' && avatarFile) {
+      setIsUploading(true);
+      const fileExt = avatarFile.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage.from('images').upload(filePath, avatarFile);
+
+      setIsUploading(false);
+      if (uploadError) {
+        setError(`Avatar upload failed: ${uploadError.message}`);
+        return null;
+      }
+
+      const { data } = supabase.storage.from('images').getPublicUrl(filePath);
+      avatarUrl = data.publicUrl;
+    }
+
+    return { ...formData, avatar_url: avatarUrl, display_order: Number(formData.display_order) };
   }
 
   const handleCreateMember = async () => { 
     setError('');
     setSuccess('');
-    const payload = preparePayload();
+    const payload = await preparePayload();
     if (!payload) return;
 
     try {
@@ -146,7 +173,7 @@ export default function AdminTeam() {
   const handleUpdateMember = async (id: string) => {
     setError('');
     setSuccess('');
-    const payload = preparePayload();
+    const payload = await preparePayload();
     if (!payload) return;
 
     try {
@@ -207,7 +234,25 @@ export default function AdminTeam() {
             <input type="text" placeholder="Position" value={formData.position} onChange={(e) => setFormData({ ...formData, position: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded" />
             <input type="text" placeholder="Department" value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded" />
             <input type="number" placeholder="Display Order" value={formData.display_order} onChange={(e) => setFormData({ ...formData, display_order: Number(e.target.value) })} className="w-full px-3 py-2 border border-gray-300 rounded" />
-            <input type="text" placeholder="Avatar URL" value={formData.avatar_url} onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded md:col-span-2" />
+            <div className="md:col-span-2 space-y-2">
+              <div className="flex items-center space-x-4">
+                <label className="flex items-center space-x-2"><input type="radio" name="uploadType" value="url" checked={uploadType === 'url'} onChange={() => setUploadType('url')} /><span>Avatar URL</span></label>
+                <label className="flex items-center space-x-2"><input type="radio" name="uploadType" value="upload" checked={uploadType === 'upload'} onChange={() => setUploadType('upload')} /><span>Upload Avatar</span></label>
+              </div>
+              {uploadType === 'url' ? (
+                <input type="text" placeholder="https://example.com/avatar.png" value={formData.avatar_url} onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded" />
+              ) : (
+                <div className="w-full px-3 py-2 border border-gray-300 rounded-lg flex items-center space-x-2">
+                  <UploadCloud size={20} className="text-gray-500" />
+                  <input
+                    type="file"
+                    accept="image/png, image/jpeg, image/webp"
+                    onChange={(e) => setAvatarFile(e.target.files ? e.target.files[0] : null)}
+                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                </div>
+              )}
+            </div>
             <input type="text" placeholder="LinkedIn URL" value={formData.linkedin_url} onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded md:col-span-2" />
             <textarea placeholder="Bio" value={formData.bio} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded md:col-span-2" rows={3} />
             <div className="flex items-center space-x-4 md:col-span-2">
@@ -221,7 +266,7 @@ export default function AdminTeam() {
               </label>
             </div>
             <div className="flex space-x-2 md:col-span-2">
-              <button onClick={handleFormSubmit} className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+              <button onClick={handleFormSubmit} disabled={isUploading} className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400">
                 <Check size={18} className="mr-1" /> {editingId ? 'Save' : 'Create'}
               </button>
               <button onClick={handleCancel} className="flex items-center px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500">
@@ -269,6 +314,7 @@ export default function AdminTeam() {
                       is_active: member.is_active,
                       display_order: member.display_order,
                     });
+                    setUploadType('url');
                     setShowForm(true);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}

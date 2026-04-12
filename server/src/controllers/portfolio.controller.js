@@ -4,7 +4,6 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { Portfolio } from "../models/portfolio.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-
 const getAllPortfolios = asyncHandler(async (req, res) => {
     const portfolios = await Portfolio.find().sort({ display_order: 'asc', createdAt: 'desc' });
 
@@ -18,11 +17,14 @@ const getAllPortfolios = asyncHandler(async (req, res) => {
 });
 
 const createPortfolio = asyncHandler(async (req, res) => {
-    const { title, description, category, client, project_url, images, tags, display_order, is_featured } = req.body;
+    const { title, description, category, client, project_url, image, tags, display_order, is_featured } = req.body;
 
     if ([title, description, category].some((field) => !field || (typeof field === 'string' && field.trim() === ""))) {
         throw new ApiError(400, "Title, description, and category are required");
     }
+
+    // The client now handles the image upload to Supabase and sends the URL in the body.
+    // No file upload handling or Cloudinary logic is needed here.
 
     const portfolio = await Portfolio.create({
         title,
@@ -30,7 +32,7 @@ const createPortfolio = asyncHandler(async (req, res) => {
         category,
         client,
         project_url,
-        images,
+        image: image || "", // Use the image URL from the body
         tags,
         display_order,
         is_featured
@@ -58,7 +60,7 @@ const updatePortfolio = asyncHandler(async (req, res) => {
         "category",
         "client",
         "project_url",
-        "images",
+        "image",
         "tags",
         "display_order",
         "is_featured"
