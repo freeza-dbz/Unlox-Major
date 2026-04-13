@@ -5,6 +5,10 @@ import Swal from 'sweetalert2';
 
 const URL = "http://localhost:8000/api/v1/users/register";
 
+const storeTokenInLS = (token: string) => {
+  localStorage.setItem('token', token);
+};
+
 export default function Signup() {
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
@@ -44,6 +48,18 @@ export default function Signup() {
 
       if (response.ok) {
         // Success case
+        if (res_data.data?.accessToken) {
+          storeTokenInLS(res_data.data.accessToken);
+        } else if (res_data.data?.refreshToken) {
+          storeTokenInLS(res_data.data.refreshToken);
+        } else if (res_data.token) {
+          storeTokenInLS(res_data.token);
+        }
+
+        if (res_data.success) {
+          localStorage.setItem('user', JSON.stringify(res_data.data));
+        }
+
         Swal.fire({
           position: "center",
           icon: "success",

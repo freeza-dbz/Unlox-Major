@@ -85,7 +85,7 @@ export default function Header() {
                   <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
                     <User size={14} className="text-white" />
                   </div>
-                  <span className="font-semibold">{data.user?.username}</span>
+                  <span className="font-semibold">{data?.username || data.user?.username}</span>
                   <ChevronDown size={14} className={`transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
                 
@@ -98,14 +98,14 @@ export default function Header() {
                           <User size={24} className="text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-gray-900 truncate">{data.user?.fullName || 'User'}</p>
-                          <p className="text-xs text-gray-500 truncate">@{data.user?.username || 'username'}</p>
+                          <p className="text-sm font-bold text-gray-900 truncate">{data?.fullName || data.user?.fullName || 'User'}</p>
+                          <p className="text-xs text-gray-500 truncate">@{data?.username || data.user?.username || 'username'}</p>
                         </div>
                       </div>
                       <div className="border-t border-gray-200 pt-3 space-y-1">
                         <div className="flex items-start space-x-2">
                           <span className="text-xs font-semibold text-gray-600 mt-0.5">Email:</span>
-                          <p className="text-xs text-gray-700 break-words flex-1">{data.user?.email || 'email@example.com'}</p>
+                          <p className="text-xs text-gray-700 break-words flex-1">{data?.email || data.user?.email || 'email@example.com'}</p>
                         </div>
                       </div>
                     </div>
@@ -117,8 +117,8 @@ export default function Header() {
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 backdrop-blur-sm">
                     <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-t-xl">
-                      <p className="text-sm font-semibold text-gray-900">{data.user.fullName}</p>
-                      <p className="text-xs text-gray-600">{data.user.email}</p>
+                      <p className="text-sm font-semibold text-gray-900">{data.fullName || data.user.fullName}</p>
+                      <p className="text-xs text-gray-600">{data.email || data.user.email}</p>
                     </div>
                     <button
                       onClick={handleLogout}
