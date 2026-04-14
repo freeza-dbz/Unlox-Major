@@ -16,7 +16,7 @@ export default function Footer() {
   const [contactInfo, setContactInfo] = useState<ContactInfo>({});
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}api/v1/contact`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/v1/contact`)
       .then(res => res.json())
       .then(data => {
         if (data.success) setContactInfo(data.data);
