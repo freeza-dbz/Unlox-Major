@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Plus, Trash2, CreditCard as Edit2, Check, X, UploadCloud } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
+import { apiClient } from '../lib/apiClient';
 type Project = {
   _id: string;
   title: string;
@@ -14,8 +15,6 @@ type Project = {
   is_featured: boolean;
   display_order: number;
 };
-
-const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/v1/portfolios`;
 
 export default function AdminPortfolio() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -42,28 +41,11 @@ export default function AdminPortfolio() {
     fetchProjects();
   }, []);
 
-  const getAuthHeaders = () => {
-    let token = localStorage.getItem('token');
-    
-    // Fallback if token wasn't saved correctly but exists in the user object
-    if (!token || token === 'undefined') {
-      const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      token = userData?.accessToken || userData?.token || '';
-    }
-
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    };
-  };
-
   const fetchProjects = async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(API_BASE_URL);
-      if (!response.ok) throw new Error('Failed to fetch projects');
-      const result = await response.json();
+      const result = await apiClient.get('/api/v1/portfolios');
       if (result.success) {
         setProjects(result.data);
       } else {
@@ -81,7 +63,7 @@ export default function AdminPortfolio() {
     setError('');
     setSuccess('');
     try {
-      await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+      await apiClient.delete(`/api/v1/portfolios/${id}`);
       setSuccess('Project deleted successfully!');
       setProjects(projects.filter(p => p._id !== id));
     } catch (err: any) {
@@ -155,14 +137,7 @@ export default function AdminPortfolio() {
     if (!payload) return;
 
     try {
-      const response = await fetch(API_BASE_URL, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(payload),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Failed to create project.');
-
+      await apiClient.post('/api/v1/portfolios', payload);
       setSuccess('Project created successfully!');
       setShowForm(false);
       resetForm();
@@ -179,14 +154,7 @@ export default function AdminPortfolio() {
     if (!payload) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/${id}`, {
-        method: 'PATCH',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(payload),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Failed to update project.');
-
+      await apiClient.patch(`/api/v1/portfolios/${id}`, payload);
       setSuccess('Project updated successfully!');
       setShowForm(false);
       resetForm();

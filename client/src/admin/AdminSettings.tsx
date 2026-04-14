@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Save, Plus, Trash2 } from 'lucide-react';
+import { apiClient } from '../lib/apiClient';
 
 type CompanyInfo = {
   _id?: string;
@@ -9,8 +10,6 @@ type CompanyInfo = {
   founded_year?: number;
   values: { title: string; description: string }[];
 };
-
-const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/v1/about`;
 
 export default function AdminSettings() {
   const [info, setInfo] = useState<CompanyInfo | null>(null);
@@ -23,21 +22,11 @@ export default function AdminSettings() {
     fetchInfo();
   }, []);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    };
-  };
-
   const fetchInfo = async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(API_BASE_URL);
-      if (!response.ok) throw new Error('Failed to fetch settings.');
-      const result = await response.json();
+      const result = await apiClient.get('/api/v1/about');
       if (result.success) {
         setInfo(result.data);
       } else {
@@ -57,14 +46,7 @@ export default function AdminSettings() {
     setSuccess('');
 
     try {
-      const response = await fetch(API_BASE_URL, {
-        method: 'PATCH',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(info),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Failed to save settings.');
-
+      const result = await apiClient.patch('/api/v1/about', info);
       setSuccess('Settings saved successfully!');
       setTimeout(() => setSuccess(''), 3000);
       setInfo(result.data);

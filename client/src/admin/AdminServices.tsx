@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Plus, Trash2, CreditCard as Edit2, Check, X, Code } from 'lucide-react';
 import { iconList } from './iconList';
 
+import { apiClient } from '../lib/apiClient';
 type Service = {
   _id: string;
   title: string;
@@ -10,8 +11,6 @@ type Service = {
   icon: string;
   display_order: number;
 };
-
-const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/v1/services`;
 
 export default function AdminServices() {
   const [services, setServices] = useState<Service[]>([]);
@@ -32,28 +31,11 @@ export default function AdminServices() {
     fetchServices();
   }, []);
 
-  const getAuthHeaders = () => {
-    let token = localStorage.getItem('token');
-    
-    // Fallback if token wasn't saved correctly but exists in the user object
-    if (!token || token === 'undefined') {
-      const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      token = userData?.accessToken || userData?.token || '';
-    }
-
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    };
-  };
-
   const fetchServices = async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(API_BASE_URL);
-      if (!response.ok) throw new Error('Failed to fetch services.');
-      const result = await response.json();
+      const result = await apiClient.get('/api/v1/services');
       if (result.success) {
         setServices(result.data);
       } else {
@@ -71,7 +53,7 @@ export default function AdminServices() {
     setError('');
     setSuccess('');
     try {
-      await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+      await apiClient.delete(`/api/v1/services/${id}`);
       setSuccess('Service deleted successfully!');
       setServices(services.filter(s => s._id !== id));
     } catch (err: any) {
@@ -83,14 +65,7 @@ export default function AdminServices() {
     const payload = { ...formData, display_order: Number(formData.display_order) };
 
     try {
-      const response = await fetch(`${API_BASE_URL}/${id}`, {
-        method: 'PATCH',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(payload),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Failed to update service.');
-
+      await apiClient.patch(`/api/v1/services/${id}`, payload);
       setSuccess('Service updated successfully!');
       setEditing(null);
       fetchServices();
@@ -110,14 +85,7 @@ export default function AdminServices() {
     const payload = { ...formData, display_order: Number(formData.display_order) };
 
     try {
-      const response = await fetch(API_BASE_URL, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(payload),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Failed to create service.');
-
+      await apiClient.post('/api/v1/services', payload);
       setSuccess('Service created successfully!');
       setShowForm(false);
       setFormData({ title: '', description: '', icon: '', feature: '', display_order: 0 });

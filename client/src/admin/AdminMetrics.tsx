@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Plus, Trash2, Edit2, Check, X } from 'lucide-react';
 import { iconList } from './iconList';
 
+import { apiClient } from '../lib/apiClient';
 type Metric = {
   _id: string;
   title: string;
@@ -13,8 +14,6 @@ type Metric = {
   is_active: boolean;
   display_order: number;
 };
-
-const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/v1/metrics`;
 
 export default function AdminMetrics() {
   const [metrics, setMetrics] = useState<Metric[]>([]);
@@ -38,21 +37,11 @@ export default function AdminMetrics() {
     fetchMetrics();
   }, []);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    };
-  };
-
   const fetchMetrics = async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(API_BASE_URL);
-      if (!response.ok) throw new Error('Failed to fetch metrics');
-      const result = await response.json();
+      const result = await apiClient.get('/api/v1/metrics');
       if (result.success) {
         setMetrics(result.data);
       } else {
@@ -70,11 +59,7 @@ export default function AdminMetrics() {
     setError('');
     setSuccess('');
     try {
-      const response = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.message || 'Failed to delete metric.');
-      }
+      await apiClient.delete(`/api/v1/metrics/${id}`);
       setSuccess('Metric deleted successfully!');
       setMetrics(metrics.filter(m => m._id !== id));
     } catch (err: any) {
@@ -124,14 +109,7 @@ export default function AdminMetrics() {
     if (!payload) return;
 
     try {
-      const response = await fetch(API_BASE_URL, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(payload),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Failed to create metric.');
-
+      await apiClient.post('/api/v1/metrics', payload);
       setSuccess('Metric created successfully!');
       setShowForm(false);
       resetForm();
@@ -148,14 +126,7 @@ export default function AdminMetrics() {
     if (!payload) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/${id}`, {
-        method: 'PATCH',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(payload),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Failed to update metric.');
-
+      await apiClient.patch(`/api/v1/metrics/${id}`, payload);
       setSuccess('Metric updated successfully!');
       setShowForm(false);
       resetForm();

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Plus, Trash2, CreditCard as Edit2, Check, X } from 'lucide-react';
-
-const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/v1/testimonials`;
+import { apiClient } from '../lib/apiClient';
 
 interface Testimonial {
   _id: string;
@@ -35,39 +34,20 @@ export default function AdminTestimonials() {
     fetchTestimonials();
   }, []);
 
-  const getAuthHeaders = () => {
-    let token = localStorage.getItem('token');
-    
-    // Fallback if token wasn't saved correctly but exists in the user object
-    if (!token || token === 'undefined') {
-      const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      token = userData?.accessToken || userData?.token || '';
-    }
-
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    };
-  };
-
   const fetchTestimonials = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/`, {
-        method: 'GET',
-        headers: getAuthHeaders(),
-      });
+      setError('');
+      const result = await apiClient.get('/api/v1/testimonials/');
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Unauthorized: Invalid or expired token');
-        }
-        throw new Error('Failed to fetch testimonials');
-      }
-
-      const result = await response.json();
       if (result.success && result.data) {
         setTestimonials(result.data);
+      } else {
+        const errorMessage = result.message || 'Failed to fetch testimonials';
+        if (errorMessage.includes('Unauthorized')) {
+          throw new Error('Unauthorized: Invalid or expired token');
+        }
+        throw new Error(errorMessage);
       }
     } catch (err) {
       console.error('Error fetching testimonials:', err);
@@ -81,16 +61,7 @@ export default function AdminTestimonials() {
     if (!confirm('Are you sure you want to delete this testimonial?')) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/${id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      });
-
-      if (!response.ok) {
-        const result = await response.json();
-        throw new Error(result.message || 'Failed to delete testimonial');
-      }
-
+      await apiClient.delete(`/api/v1/testimonials/${id}`);
       setSuccess('Testimonial deleted successfully!');
       fetchTestimonials();
     } catch (err) {
@@ -103,24 +74,15 @@ export default function AdminTestimonials() {
     setSuccess('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/${id}`, {
-        method: 'PATCH',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          name: formData.name,
-          role: formData.role,
-          company: formData.company,
-          content: formData.content,
-          rating: formData.rating,
-          display_order: formData.display_order,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to update testimonial');
-      }
+      const payload = {
+        name: formData.name,
+        role: formData.role,
+        company: formData.company,
+        content: formData.content,
+        rating: formData.rating,
+        display_order: formData.display_order,
+      };
+      const result = await apiClient.patch(`/api/v1/testimonials/${id}`, payload);
 
       if (result.success) {
         setSuccess('Testimonial updated successfully!');
@@ -137,24 +99,15 @@ export default function AdminTestimonials() {
     setSuccess('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          name: formData.name,
-          role: formData.role,
-          company: formData.company,
-          content: formData.content,
-          rating: formData.rating,
-          display_order: formData.display_order,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to create testimonial');
-      }
+      const payload = {
+        name: formData.name,
+        role: formData.role,
+        company: formData.company,
+        content: formData.content,
+        rating: formData.rating,
+        display_order: formData.display_order,
+      };
+      const result = await apiClient.post('/api/v1/testimonials/', payload);
 
       if (result.success) {
         setSuccess('Testimonial created successfully!');

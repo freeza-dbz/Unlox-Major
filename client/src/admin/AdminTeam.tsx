@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Plus, Trash2, CreditCard as Edit2, Check, X, User, UploadCloud } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
+import { apiClient } from '../lib/apiClient';
 type TeamMember = {
   _id: string;
   name: string;
@@ -14,8 +15,6 @@ type TeamMember = {
   is_active: boolean;
   display_order: number;
 };
-
-const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/v1/team`;
 
 export default function AdminTeam() {
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -43,21 +42,11 @@ export default function AdminTeam() {
     fetchMembers();
   }, []);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    };
-  };
-
   const fetchMembers = async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(API_BASE_URL);
-      if (!response.ok) throw new Error('Failed to fetch team members');
-      const result = await response.json();
+      const result = await apiClient.get('/api/v1/team');
       if (result.success) {
         setMembers(result.data);
       } else {
@@ -75,11 +64,7 @@ export default function AdminTeam() {
     setError('');
     setSuccess('');
     try {
-      const response = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.message || 'Failed to delete member.');
-      }
+      await apiClient.delete(`/api/v1/team/${id}`);
       setSuccess('Team member deleted successfully!');
       setMembers(members.filter(m => m._id !== id));
     } catch (err: any) {
@@ -153,14 +138,7 @@ export default function AdminTeam() {
     if (!payload) return;
 
     try {
-      const response = await fetch(API_BASE_URL, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(payload),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Failed to create member.');
-
+      await apiClient.post('/api/v1/team', payload);
       setSuccess('Team member created successfully!');
       setShowForm(false);
       resetForm();
@@ -177,14 +155,7 @@ export default function AdminTeam() {
     if (!payload) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/${id}`, {
-        method: 'PATCH',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(payload),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Failed to update member.');
-
+      await apiClient.patch(`/api/v1/team/${id}`, payload);
       setSuccess('Team member updated successfully!');
       setShowForm(false);
       resetForm();

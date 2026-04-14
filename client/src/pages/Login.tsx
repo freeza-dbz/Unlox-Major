@@ -2,9 +2,8 @@ import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { LogIn, AlertCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
-
-const URL = `${import.meta.env.VITE_API_URL}/api/v1/users/login`;
-
+import { apiClient } from '../lib/apiClient';
+ 
 const storeTokenInLS = (token: string) => {
   localStorage.setItem('token', token);
 };
@@ -23,20 +22,9 @@ export default function Login() {
 
     try {
       const payload = { email, password };
+      const res_data = await apiClient.post('/api/v1/users/login', payload);
 
-      const response = await fetch(URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const res_data = await response.json();
-      // console.log("Login response from server ", res_data);
-      
-
-      if (response.ok) {
+      if (res_data.success) {
         // Success case
         if (res_data.data?.accessToken) {
           storeTokenInLS(res_data.data.accessToken);
@@ -46,9 +34,7 @@ export default function Login() {
           storeTokenInLS(res_data.token);
         }
 
-        if (res_data.success) {
-          localStorage.setItem('user', JSON.stringify(res_data.data));
-        }
+        localStorage.setItem('user', JSON.stringify(res_data.data));
 
         Swal.fire({
           position: "center",
@@ -77,12 +63,12 @@ export default function Login() {
         }, 1600);
       } else {
         // Error case - get message from server response
-        console.log('Login error response:', response.status, res_data);
+        console.log('Login error response:', res_data);
         const errorMessage = 
           res_data?.message || 
           res_data?.error?.message || 
           res_data?.error || 
-          `Login failed with status ${response.status}. Please try again.`;
+          `Login failed. Please try again.`;
         
         setError(errorMessage);
 

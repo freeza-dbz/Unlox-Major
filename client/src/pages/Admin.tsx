@@ -9,9 +9,8 @@ import AdminContact from '../admin/AdminContact';
 import AdminMetrics from '../admin/AdminMetrics';
 import AdminSettings from '../admin/AdminSettings';
 import AdminUsers from '../admin/AdminUsers';
+import { apiClient } from '../lib/apiClient';
 import Swal from 'sweetalert2';
-
-const LOGOUT_URL = `${import.meta.env.VITE_API_URL}/api/v1/users/logout`;
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -20,16 +19,9 @@ export default function Admin() {
 
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(LOGOUT_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
+      const response = await apiClient.post('/api/v1/users/logout', {});
 
-      if (response.ok) {
+      if (response.success) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         Swal.fire({
@@ -137,8 +129,7 @@ function AdminDashboard() {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/metrics`);
-        const result = await response.json();
+        const result = await apiClient.get('/api/v1/metrics');
         if (result.success) {
           setMetrics(result.data);
         }

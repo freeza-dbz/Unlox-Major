@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Save, Mail, Phone, MapPin, Clock, Linkedin, Twitter, Facebook } from 'lucide-react';
+import { apiClient } from '../lib/apiClient';
 
 type ContactInfo = {
   _id?: string;
@@ -12,8 +13,6 @@ type ContactInfo = {
   facebook_url?: string;
 };
 
-const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/v1/contact`;
-
 export default function AdminContact() {
   const [info, setInfo] = useState<ContactInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -25,21 +24,11 @@ export default function AdminContact() {
     fetchInfo();
   }, []);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    };
-  };
-
   const fetchInfo = async () => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(API_BASE_URL);
-      if (!response.ok) throw new Error('Failed to fetch contact settings.');
-      const result = await response.json();
+      const result = await apiClient.get('/api/v1/contact');
       if (result.success) {
         setInfo(result.data);
       } else {
@@ -59,14 +48,7 @@ export default function AdminContact() {
     setSuccess('');
 
     try {
-      const response = await fetch(API_BASE_URL, {
-        method: 'PATCH',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(info),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Failed to save contact settings.');
-
+      const result = await apiClient.patch('/api/v1/contact', info);
       setSuccess('Contact settings saved successfully!');
       setTimeout(() => setSuccess(''), 3000);
       setInfo(result.data);

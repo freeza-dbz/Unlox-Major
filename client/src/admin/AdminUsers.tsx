@@ -1,7 +1,6 @@
-﻿﻿import { useEffect, useState } from 'react';
+﻿﻿﻿﻿import { useEffect, useState } from 'react';
 import { Plus, Trash2, CreditCard as Edit2, Check, X } from 'lucide-react';
-
-const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/v1/users`;
+import { apiClient } from '../lib/apiClient';
 
 interface AdminUser {
   _id: string;
@@ -32,34 +31,15 @@ export default function AdminUsers() {
     fetchUsers();
   }, []);
 
-  const getAuthHeaders = () => {
-    let token = localStorage.getItem('token');
-
-    // Fallback if token wasn't saved correctly but exists in the user object
-    if (!token || token === 'undefined') {
-      const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      token = userData?.accessToken || userData?.token || '';
-    }
-
-    return {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    };
-  };
-
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/getAllUsers`, {
-        method: "GET",
-        headers: getAuthHeaders(),
-      });
+      const result = await apiClient.get('/api/v1/users/getAllUsers');
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch users');
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to fetch users');
       }
 
-      const result = await response.json();
       if (result.success && result.data) {
         setUsers(result.data);
       }
@@ -81,23 +61,14 @@ export default function AdminUsers() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/createUser`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          fullName: formData.fullName,
-          email: formData.email,
-          username: formData.username,
-          password: formData.password,
-          isAdmin: formData.isAdmin,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to create user');
-      }
+      const payload = {
+        fullName: formData.fullName,
+        email: formData.email,
+        username: formData.username,
+        password: formData.password,
+        isAdmin: formData.isAdmin,
+      };
+      const result = await apiClient.post('/api/v1/users/createUser', payload);
 
       if (result.success) {
         setSuccess('User created successfully!');
@@ -115,22 +86,13 @@ export default function AdminUsers() {
     setSuccess('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/updateDetails/${id}`, {
-        method: 'PATCH',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
-          fullName: formData.fullName,
-          email: formData.email,
-          username: formData.username,
-          isAdmin: formData.isAdmin,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to update user');
-      }
+      const payload = {
+        fullName: formData.fullName,
+        email: formData.email,
+        username: formData.username,
+        isAdmin: formData.isAdmin,
+      };
+      const result = await apiClient.patch(`/api/v1/users/updateDetails/${id}`, payload);
 
       if (result.success) {
         setSuccess('User updated successfully!');
@@ -146,16 +108,7 @@ export default function AdminUsers() {
     if (!confirm(`Are you sure you want to delete ${email}?`)) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/delete/${id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      });
-
-      if (!response.ok) {
-        const result = await response.json();
-        throw new Error(result.message || 'Failed to delete user');
-      }
-
+      await apiClient.delete(`/api/v1/users/delete/${id}`);
       setSuccess('User deleted successfully!');
       fetchUsers();
     } catch (err) {
