@@ -10,7 +10,7 @@ type CompanyInfo = {
   values: { title: string; description: string }[];
 };
 
-const API_BASE_URL = 'http://localhost:8000/api/v1/about';
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/v1/about`;
 
 export default function AdminSettings() {
   const [info, setInfo] = useState<CompanyInfo | null>(null);

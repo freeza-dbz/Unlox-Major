@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { UserPlus, AlertCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
 
-const URL = "http://localhost:8000/api/v1/users/register";
+const URL = `${import.meta.env.VITE_API_URL}/api/v1/users/register`;
 
 const storeTokenInLS = (token: string) => {
   localStorage.setItem('token', token);

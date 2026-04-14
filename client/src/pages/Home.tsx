@@ -59,10 +59,10 @@ export default function Home() {
       setLoading(true);
       try {
         const [testimonialsRes, servicesRes, portfolioRes, metricsRes] = await Promise.all([
-          fetch('http://localhost:8000/api/v1/testimonials/'),
-          fetch('http://localhost:8000/api/v1/services'),
-          fetch('http://localhost:8000/api/v1/portfolios'),
-          fetch('http://localhost:8000/api/v1/metrics'),
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/testimonials/`),
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/services`),
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/portfolios`),
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/metrics`),
         ]);
 
         if (testimonialsRes.ok) {

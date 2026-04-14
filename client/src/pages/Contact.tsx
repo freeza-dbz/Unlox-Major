@@ -34,7 +34,7 @@ export default function Contact() {
 
   useEffect(() => {
     emailjs.init('lKqTT0FWFqe8kU_oS'); // Your EmailJS public key
-    fetch('http://localhost:8000/api/v1/contact')
+    fetch(`${import.meta.env.VITE_API_URL}/api/v1/contact`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {

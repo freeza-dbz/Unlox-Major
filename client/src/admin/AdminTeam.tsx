@@ -15,7 +15,7 @@ type TeamMember = {
   display_order: number;
 };
 
-const API_BASE_URL = 'http://localhost:8000/api/v1/team';
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/v1/team`;
 
 export default function AdminTeam() {
   const [members, setMembers] = useState<TeamMember[]>([]);

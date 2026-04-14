@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Plus, Trash2, CreditCard as Edit2, Check, X } from 'lucide-react';
 
-const API_BASE_URL = "http://localhost:8000/api/v1/testimonials";
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/v1/testimonials`;
 
 interface Testimonial {
   _id: string;

@@ -17,7 +17,7 @@ export default function Services() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/v1/services')
+    fetch(`${import.meta.env.VITE_API_URL}/api/v1/services`)
       .then(res => res.json())
       .then(data => {
         if (data.success) setServices(data.data);

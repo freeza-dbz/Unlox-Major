@@ -18,7 +18,7 @@ export default function Testimonials() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/v1/testimonials')
+    fetch(`${import.meta.env.VITE_API_URL}/api/v1/testimonials`)
       .then(res => res.json())
       .then(data => {
         if (data.success) {

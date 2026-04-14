@@ -11,7 +11,7 @@ type Service = {
   display_order: number;
 };
 
-const API_BASE_URL = 'http://localhost:8000/api/v1/services';
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/v1/services`;
 
 export default function AdminServices() {
   const [services, setServices] = useState<Service[]>([]);

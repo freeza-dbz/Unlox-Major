@@ -14,7 +14,7 @@ type Metric = {
   display_order: number;
 };
 
-const API_BASE_URL = 'http://localhost:8000/api/v1/metrics';
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/v1/metrics`;
 
 export default function AdminMetrics() {
   const [metrics, setMetrics] = useState<Metric[]>([]);

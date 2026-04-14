@@ -32,8 +32,8 @@ export default function About() {
     const fetchData = async () => {
       try {
         const [aboutRes, teamRes] = await Promise.all([
-          fetch('http://localhost:8000/api/v1/about'),
-          fetch('http://localhost:8000/api/v1/team'),
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/about`),
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/team`),
         ]);
 
         const aboutData = await aboutRes.json();

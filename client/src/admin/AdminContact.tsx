@@ -12,7 +12,7 @@ type ContactInfo = {
   facebook_url?: string;
 };
 
-const API_BASE_URL = 'http://localhost:8000/api/v1/contact';
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/v1/contact`;
 
 export default function AdminContact() {
   const [info, setInfo] = useState<ContactInfo | null>(null);

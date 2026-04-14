@@ -15,7 +15,7 @@ type Project = {
   display_order: number;
 };
 
-const API_BASE_URL = 'http://localhost:8000/api/v1/portfolios';
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/v1/portfolios`;
 
 export default function AdminPortfolio() {
   const [projects, setProjects] = useState<Project[]>([]);

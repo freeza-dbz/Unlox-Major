@@ -11,7 +11,7 @@ import AdminSettings from '../admin/AdminSettings';
 import AdminUsers from '../admin/AdminUsers';
 import Swal from 'sweetalert2';
 
-const LOGOUT_URL = "http://localhost:8000/api/v1/users/logout";
+const LOGOUT_URL = `${import.meta.env.VITE_API_URL}/api/v1/users/logout`;
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -137,7 +137,7 @@ function AdminDashboard() {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/v1/metrics');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/metrics`);
         const result = await response.json();
         if (result.success) {
           setMetrics(result.data);

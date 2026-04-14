@@ -20,7 +20,7 @@ export default function Portfolio() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/v1/portfolios')
+    fetch(`${import.meta.env.VITE_API_URL}/api/v1/portfolios`)
       .then(res => res.json())
       .then(data => {
         if (data.success) setProjects(data.data);
