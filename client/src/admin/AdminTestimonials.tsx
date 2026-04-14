@@ -38,7 +38,7 @@ export default function AdminTestimonials() {
     try {
       setLoading(true);
       setError('');
-      const result = await apiClient.get(`${import.meta.env.VITE_API_URL}/api/v1/testimonials/`);
+      const result = await apiClient.get('/api/v1/testimonials/');
 
       if (result.success && result.data) {
         setTestimonials(result.data);
@@ -82,7 +82,7 @@ export default function AdminTestimonials() {
         rating: formData.rating,
         display_order: formData.display_order,
       };
-      const result = await apiClient.patch(`${import.meta.env.VITE_API_URL}/api/v1/testimonials/${id}`, payload);
+      const result = await apiClient.patch(`/api/v1/testimonials/${id}`, payload);
 
       if (result.success) {
         setSuccess('Testimonial updated successfully!');
@@ -107,7 +107,7 @@ export default function AdminTestimonials() {
         rating: formData.rating,
         display_order: formData.display_order,
       };
-      const result = await apiClient.post(`${import.meta.env.VITE_API_URL}/api/v1/testimonials/`, payload);
+      const result = await apiClient.post('/api/v1/testimonials/', payload);
 
       if (result.success) {
         setSuccess('Testimonial created successfully!');

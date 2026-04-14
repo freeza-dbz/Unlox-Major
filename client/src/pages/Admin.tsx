@@ -129,7 +129,7 @@ function AdminDashboard() {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const result = await apiClient.get(`${import.meta.env.VITE_API_URL}/api/v1/metrics`);
+        const result = await apiClient.get('/api/v1/metrics');
         if (result.success) {
           setMetrics(result.data);
         }

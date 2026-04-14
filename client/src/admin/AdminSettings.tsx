@@ -26,7 +26,7 @@ export default function AdminSettings() {
     setLoading(true);
     setError('');
     try {
-      const result = await apiClient.get(`${import.meta.env.VITE_API_URL}/api/v1/about`);
+      const result = await apiClient.get('/api/v1/about');
       if (result.success) {
         setInfo(result.data);
       } else {
@@ -46,7 +46,7 @@ export default function AdminSettings() {
     setSuccess('');
 
     try {
-      const result = await apiClient.patch(`${import.meta.env.VITE_API_URL}/api/v1/about`, info);
+      const result = await apiClient.patch('/api/v1/about', info);
       setSuccess('Settings saved successfully!');
       setTimeout(() => setSuccess(''), 3000);
       setInfo(result.data);

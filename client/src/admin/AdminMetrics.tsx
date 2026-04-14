@@ -41,7 +41,7 @@ export default function AdminMetrics() {
     setLoading(true);
     setError('');
     try {
-      const result = await apiClient.get(`${import.meta.env.VITE_API_URL}/api/v1/metrics`);
+      const result = await apiClient.get('/api/v1/metrics');
       if (result.success) {
         setMetrics(result.data);
       } else {
@@ -59,7 +59,7 @@ export default function AdminMetrics() {
     setError('');
     setSuccess('');
     try {
-      await apiClient.delete(`${import.meta.env.VITE_API_URL}/api/v1/metrics/${id}`);
+      await apiClient.delete(`/api/v1/metrics/${id}`);
       setSuccess('Metric deleted successfully!');
       setMetrics(metrics.filter(m => m._id !== id));
     } catch (err: any) {
@@ -109,7 +109,7 @@ export default function AdminMetrics() {
     if (!payload) return;
 
     try {
-      await apiClient.post(`${import.meta.env.VITE_API_URL}/api/v1/metrics`, payload);
+      await apiClient.post('/api/v1/metrics', payload);
       setSuccess('Metric created successfully!');
       setShowForm(false);
       resetForm();
@@ -126,7 +126,7 @@ export default function AdminMetrics() {
     if (!payload) return;
 
     try {
-      await apiClient.patch(`${import.meta.env.VITE_API_URL}/api/v1/metrics/${id}`, payload);
+      await apiClient.patch(`/api/v1/metrics/${id}`, payload);
       setSuccess('Metric updated successfully!');
       setShowForm(false);
       resetForm();

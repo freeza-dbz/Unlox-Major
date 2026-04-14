@@ -34,7 +34,7 @@ export default function AdminUsers() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const result = await apiClient.get(`${import.meta.env.VITE_API_URL}/api/v1/users/getAllUsers`);
+      const result = await apiClient.get('/api/v1/users/getAllUsers');
 
       if (!result.success) {
         throw new Error(result.message || 'Failed to fetch users');
@@ -68,7 +68,7 @@ export default function AdminUsers() {
         password: formData.password,
         isAdmin: formData.isAdmin,
       };
-      const result = await apiClient.post(`${import.meta.env.VITE_API_URL}/api/v1/users/createUser`, payload);
+      const result = await apiClient.post('/api/v1/users/createUser', payload);
 
       if (result.success) {
         setSuccess('User created successfully!');
@@ -92,7 +92,7 @@ export default function AdminUsers() {
         username: formData.username,
         isAdmin: formData.isAdmin,
       };
-      const result = await apiClient.patch(`${import.meta.env.VITE_API_URL}/api/v1/users/updateDetails/${id}`, payload);
+      const result = await apiClient.patch(`/api/v1/users/updateDetails/${id}`, payload);
 
       if (result.success) {
         setSuccess('User updated successfully!');
@@ -108,7 +108,7 @@ export default function AdminUsers() {
     if (!confirm(`Are you sure you want to delete ${email}?`)) return;
 
     try {
-      await apiClient.delete(`${import.meta.env.VITE_API_URL}/api/v1/users/delete/${id}`);
+      await apiClient.delete(`/api/v1/users/delete/${id}`);
       setSuccess('User deleted successfully!');
       fetchUsers();
     } catch (err) {

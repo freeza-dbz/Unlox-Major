@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Linkedin, Target, Eye, Heart } from 'lucide-react';
+import { apiClient } from '../lib/apiClient';
 
 type CompanyInfo = {
   _id?: string;
@@ -31,15 +32,13 @@ export default function About() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [aboutRes, teamRes] = await Promise.all([
-          fetch(`${import.meta.env.VITE_API_URL}/api/v1/about`),
-          fetch(`${import.meta.env.VITE_API_URL}/api/v1/team`),
+        const [aboutData, teamData] = await Promise.all([
+          apiClient.get('/api/v1/about'),
+          apiClient.get('/api/v1/team'),
         ]);
 
-        const aboutData = await aboutRes.json();
         if (aboutData.success) setCompanyInfo(aboutData.data);
 
-        const teamData = await teamRes.json();
         if (teamData.success) setTeamMembers(teamData.data);
 
       } catch (err) {

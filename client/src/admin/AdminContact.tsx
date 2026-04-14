@@ -28,7 +28,7 @@ export default function AdminContact() {
     setLoading(true);
     setError('');
     try {
-      const result = await apiClient.get(`${import.meta.env.VITE_API_URL}/api/v1/contact`);
+      const result = await apiClient.get('/api/v1/contact');
       if (result.success) {
         setInfo(result.data);
       } else {
@@ -48,7 +48,7 @@ export default function AdminContact() {
     setSuccess('');
 
     try {
-      const result = await apiClient.patch(`${import.meta.env.VITE_API_URL}/api/v1/contact`, info);
+      const result = await apiClient.patch('/api/v1/contact', info);
       setSuccess('Contact settings saved successfully!');
       setTimeout(() => setSuccess(''), 3000);
       setInfo(result.data);

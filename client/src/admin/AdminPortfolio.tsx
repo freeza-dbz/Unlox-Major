@@ -45,7 +45,7 @@ export default function AdminPortfolio() {
     setLoading(true);
     setError('');
     try {
-      const result = await apiClient.get(`${import.meta.env.VITE_API_URL}/api/v1/portfolios`);
+      const result = await apiClient.get('/api/v1/portfolios');
       if (result.success) {
         setProjects(result.data);
       } else {
@@ -63,7 +63,7 @@ export default function AdminPortfolio() {
     setError('');
     setSuccess('');
     try {
-      await apiClient.delete(`${import.meta.env.VITE_API_URL}/api/v1/portfolios/${id}`);
+      await apiClient.delete(`/api/v1/portfolios/${id}`);
       setSuccess('Project deleted successfully!');
       setProjects(projects.filter(p => p._id !== id));
     } catch (err: any) {
@@ -154,7 +154,7 @@ export default function AdminPortfolio() {
     if (!payload) return;
 
     try {
-      await apiClient.patch(`${import.meta.env.VITE_API_URL}/api/v1/portfolios/${id}`, payload);
+      await apiClient.patch(`/api/v1/portfolios/${id}`, payload);
       setSuccess('Project updated successfully!');
       setShowForm(false);
       resetForm();

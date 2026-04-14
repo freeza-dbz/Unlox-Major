@@ -46,7 +46,7 @@ export default function AdminTeam() {
     setLoading(true);
     setError('');
     try {
-      const result = await apiClient.get(`${import.meta.env.VITE_API_URL}/api/v1/team`);
+      const result = await apiClient.get('/api/v1/team');
       if (result.success) {
         setMembers(result.data);
       } else {
@@ -64,7 +64,7 @@ export default function AdminTeam() {
     setError('');
     setSuccess('');
     try {
-      await apiClient.delete(`${import.meta.env.VITE_API_URL}/api/v1/team/${id}`);
+      await apiClient.delete(`/api/v1/team/${id}`);
       setSuccess('Team member deleted successfully!');
       setMembers(members.filter(m => m._id !== id));
     } catch (err: any) {
@@ -138,7 +138,7 @@ export default function AdminTeam() {
     if (!payload) return;
 
     try {
-      await apiClient.post(`${import.meta.env.VITE_API_URL}/api/v1/team`, payload);
+      await apiClient.post('/api/v1/team', payload);
       setSuccess('Team member created successfully!');
       setShowForm(false);
       resetForm();
@@ -155,7 +155,7 @@ export default function AdminTeam() {
     if (!payload) return;
 
     try {
-      await apiClient.patch(`${import.meta.env.VITE_API_URL}/api/v1/team/${id}`, payload);
+      await apiClient.patch(`/api/v1/team/${id}`, payload);
       setSuccess('Team member updated successfully!');
       setShowForm(false);
       resetForm();

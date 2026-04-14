@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Calendar } from 'lucide-react';
+import { apiClient } from '../lib/apiClient';
 
 type Project = {
   _id: string;
@@ -20,16 +21,17 @@ export default function Portfolio() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/v1/portfolios`)
-      .then(res => res.json())
-      .then(data => {
+    const fetchProjects = async () => {
+      try {
+        const data = await apiClient.get('/api/v1/portfolios');
         if (data.success) setProjects(data.data);
-        setLoading(false);
-      })
-      .catch(err => {
+      } catch (err) {
         console.error("Failed to fetch projects", err);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    fetchProjects();
   }, []);
 
   return (

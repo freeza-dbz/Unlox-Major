@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
+import { apiClient } from '../lib/apiClient';
 
 type Testimonial = {
   _id: string;
@@ -18,18 +19,19 @@ export default function Testimonials() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/v1/testimonials`)
-      .then(res => res.json())
-      .then(data => {
+    const fetchTestimonials = async () => {
+      try {
+        const data = await apiClient.get('/api/v1/testimonials');
         if (data.success) {
           setTestimonials(data.data);
         }
-        setLoading(false);
-      })
-      .catch(err => {
+      } catch (err) {
         console.error("Failed to fetch testimonials", err);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    fetchTestimonials();
   }, []);
 
   return (

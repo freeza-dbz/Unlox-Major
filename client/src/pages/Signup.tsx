@@ -34,7 +34,7 @@ export default function Signup() {
 
     try {
       const payload = { fullName, username, email, password };
-      const res_data = await apiClient.post(`${import.meta.env.VITE_API_URL}/api/v1/users/register`, payload);
+      const res_data = await apiClient.post('/api/v1/users/register', payload);
 
       if (res_data.success) {
         // Success case

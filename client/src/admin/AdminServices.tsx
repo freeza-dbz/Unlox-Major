@@ -35,7 +35,7 @@ export default function AdminServices() {
     setLoading(true);
     setError('');
     try {
-      const result = await apiClient.get(`${import.meta.env.VITE_API_URL}/api/v1/services`);
+      const result = await apiClient.get('/api/v1/services');
       if (result.success) {
         setServices(result.data);
       } else {
@@ -53,7 +53,7 @@ export default function AdminServices() {
     setError('');
     setSuccess('');
     try {
-      await apiClient.delete(`${import.meta.env.VITE_API_URL}/api/v1/services/${id}`);
+      await apiClient.delete(`/api/v1/services/${id}`);
       setSuccess('Service deleted successfully!');
       setServices(services.filter(s => s._id !== id));
     } catch (err: any) {
@@ -65,7 +65,7 @@ export default function AdminServices() {
     const payload = { ...formData, display_order: Number(formData.display_order) };
 
     try {
-      await apiClient.patch(`${import.meta.env.VITE_API_URL}/api/v1/services/${id}`, payload);
+      await apiClient.patch(`/api/v1/services/${id}`, payload);
       setSuccess('Service updated successfully!');
       setEditing(null);
       fetchServices();
@@ -85,7 +85,7 @@ export default function AdminServices() {
     const payload = { ...formData, display_order: Number(formData.display_order) };
 
     try {
-      await apiClient.post(`${import.meta.env.VITE_API_URL}/api/v1/services`, payload);
+      await apiClient.post('/api/v1/services', payload);
       setSuccess('Service created successfully!');
       setShowForm(false);
       setFormData({ title: '', description: '', icon: '', feature: '', display_order: 0 });

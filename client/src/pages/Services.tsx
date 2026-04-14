@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import * as Icons from 'lucide-react';
+import { apiClient } from '../lib/apiClient';
 
 type Service = {
   _id: string;
@@ -17,16 +18,17 @@ export default function Services() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/v1/services`)
-      .then(res => res.json())
-      .then(data => {
+    const fetchServices = async () => {
+      try {
+        const data = await apiClient.get('/api/v1/services');
         if (data.success) setServices(data.data);
-        setLoading(false);
-      })
-      .catch(err => {
+      } catch (err) {
         console.error("Failed to fetch services", err);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    fetchServices();
   }, []);
 
   const getIcon = (iconName: string) => {

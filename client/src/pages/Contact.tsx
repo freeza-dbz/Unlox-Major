@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Mail, Phone, MapPin, Clock, Linkedin, Twitter, Facebook, Send, AlertCircle } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 import Swal from "sweetalert2";
+import { apiClient } from '../lib/apiClient';
 
 type ContactInfo = {
   email?: string;
@@ -34,18 +35,19 @@ export default function Contact() {
 
   useEffect(() => {
     emailjs.init('lKqTT0FWFqe8kU_oS'); // Your EmailJS public key
-    fetch(`${import.meta.env.VITE_API_URL}/api/v1/contact`)
-      .then(res => res.json())
-      .then(data => {
+    const fetchContactInfo = async () => {
+      try {
+        const data = await apiClient.get('/api/v1/contact');
         if (data.success) {
           setContactInfo(data.data);
         }
-        setLoading(false);
-      })
-      .catch(err => {
+      } catch (err) {
         console.error("Failed to fetch contact info", err);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    fetchContactInfo();
   }, []);
 
   const handleChange = (

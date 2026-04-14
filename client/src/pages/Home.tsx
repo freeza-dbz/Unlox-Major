@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Star } from 'lucide-react';
 import * as Icons from 'lucide-react';
+import { apiClient } from '../lib/apiClient';
 
 type Service = {
   _id: string;
@@ -58,33 +59,24 @@ export default function Home() {
     const fetchHomeData = async () => {
       setLoading(true);
       try {
-        const [testimonialsRes, servicesRes, portfolioRes, metricsRes] = await Promise.all([
-          fetch(`${import.meta.env.VITE_API_URL}/api/v1/testimonials/`),
-          fetch(`${import.meta.env.VITE_API_URL}/api/v1/services`),
-          fetch(`${import.meta.env.VITE_API_URL}/api/v1/portfolios`),
-          fetch(`${import.meta.env.VITE_API_URL}/api/v1/metrics`),
+        const [testimonialsData, servicesData, portfolioData, metricsData] = await Promise.all([
+          apiClient.get('/api/v1/testimonials/'),
+          apiClient.get('/api/v1/services'),
+          apiClient.get('/api/v1/portfolios'),
+          apiClient.get('/api/v1/metrics'),
         ]);
 
-        if (testimonialsRes.ok) {
-            const testimonialsData = await testimonialsRes.json();
-            if (testimonialsData.success) setTestimonials(testimonialsData.data);
+        if (testimonialsData.success) {
+          setTestimonials(testimonialsData.data);
         }
-
-        if (servicesRes.ok) {
-            const servicesData = await servicesRes.json();
-            if (servicesData.success) setServices(servicesData.data.slice(0, 3)); // Show only first 3
+        if (servicesData.success) {
+          setServices(servicesData.data.slice(0, 3)); // Show only first 3
         }
-
-        if (portfolioRes.ok) {
-            const portfolioData = await portfolioRes.json();
-            if (portfolioData.success) {
-                setFeaturedProjects(portfolioData.data.filter((p: Project) => p.is_featured).slice(0, 3));
-            }
+        if (portfolioData.success) {
+          setFeaturedProjects(portfolioData.data.filter((p: Project) => p.is_featured).slice(0, 3));
         }
-
-        if (metricsRes.ok) {
-            const metricsData = await metricsRes.json();
-            if (metricsData.success) setMetrics(metricsData.data.slice(0, 4)); // Show up to 4
+        if (metricsData.success) {
+          setMetrics(metricsData.data.slice(0, 4)); // Show up to 4
         }
       } catch (error) {
           console.error("Failed to fetch home page data", error);
